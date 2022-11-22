@@ -101,11 +101,57 @@ public class DentistaDaoH2 implements IDao<Dentista> {
 
     @Override
     public List<Dentista> buscarTodos() {
-        return null;
+        log.debug("Listar todos os dentistas disponíveis.");
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        List<Dentista> dentistas = new ArrayList<>();
+
+        try{
+            Class.forName(DB_JDBC_DRIVER);
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            preparedStatement = connection.prepareStatement("SELECT *  FROM dentistas");
+
+            ResultSet result = preparedStatement.executeQuery();
+
+            while (result.next()) {
+                int idDentista = result.getInt("id");
+                String nome = result.getString("nome");
+                String sobrenome = result.getString("sobrenome");
+                int matriculaDentista = result.getInt("matriculaDentista");
+
+                Dentista dentista = new Dentista(idDentista,nome,sobrenome,matriculaDentista);
+                dentistas.add(dentista);
+            }
+
+            preparedStatement.close();
+        } catch (SQLException | ClassNotFoundException throwables) {
+            throwables.printStackTrace();
+            log.error(throwables);
+        }
+
+        return dentistas;
     }
 
     @Override
     public Dentista atualizar(Dentista dentista) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+
+        try{
+            Class.forName(DB_JDBC_DRIVER);
+            connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+            preparedStatement = connection.prepareStatement("UPDATE dentistas SET nome = ?, sobrenome = ?,matriculaDentista = ?  WHERE id = ?");
+
+            preparedStatement.setString(1, dentista.getNome());
+            preparedStatement.setString(2, dentista.getSobrenome());
+            preparedStatement.setInt(3, dentista.getMatriculaDentista());
+            preparedStatement.setInt(4, dentista.getId());
+        } catch (SQLException | ClassNotFoundException throwables){
+            throwables.printStackTrace();
+            log.error(throwables);
+        }
         return dentista;
     }
 }
